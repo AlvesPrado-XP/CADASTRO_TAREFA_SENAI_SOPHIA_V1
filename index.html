@@ -8,27 +8,37 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+
     <div class="cartao-aplicacao">
         <header class="cabecalho-aplicacao">
-            <h1>Minhas tarefas✨</h1>
+            <div class="titulo-com-foto">
+                <div class="perfil-usuario">
+                    <img src="./eu_modo_claro.jpg" alt="Foto Perfil Claro" class="foto-perfil foto-claro">
+                    <img src="./eu_modo_escuro.jpg" alt="Foto Perfil Escuro" class="foto-perfil foto-escuro">
+                </div>
+                <h1>Minhas tarefas✨</h1>
+            </div>
+
             <button class="botao-icone" id="botao-alternar-tema">
                 <i class="fa-solid fa-moon"></i>
             </button>
         </header>
+
         <div class="caixa-entrada">
             <input type="text" id="campo-tarefa" placeholder="O que vamos fazer hoje?..." maxlength="40">
+            <input type="datetime-local" id="campo-agendamento" title="Agendar para">
             <button class="botao-principal" id="botao-adicionar">
                 <i class="fa-solid fa-plus"></i>Adicionar
             </button>
         </div>
+
         <ul class="lista-tarefas" id="lista-tarefas">
-            <!-- As tarefas serão inseridas dinamicamente via JavaScript -->
         </ul>
+
         <footer class="rodape-aplicacao">
             <span id="contador-tarefas">0 tarefas na lista</span>
         </footer>
     </div>
-
 
     <script src="script.js"></script>
 </body>
