@@ -18,9 +18,10 @@ function salvarNoStorage() {
     localStorage.setItem("tarefas_app", JSON.stringify(tarefas));
 }
 
-botao.addEventListener("click", function () {
+function adicionarTarefa() {
     if (campo.value.trim() === "") {
         alert("Digite uma tarefa!");
+        campo.focus();
         return;
     }
 
@@ -58,8 +59,23 @@ botao.addEventListener("click", function () {
 
     campo.value = "";
     campoAgendamento.value = "";
+    campo.focus();
 
     mostrarTarefas();
+}
+
+botao.addEventListener("click", adicionarTarefa);
+
+campo.addEventListener("keypress", function (e) {
+    if (e.key === "Enter") {
+        adicionarTarefa();
+    }
+});
+
+campoAgendamento.addEventListener("keypress", function (e) {
+    if (e.key === "Enter") {
+        adicionarTarefa();
+    }
 });
 
 function mostrarTarefas() {
@@ -68,7 +84,7 @@ function mostrarTarefas() {
     const tarefasFiltradas = tarefas.filter((tarefa) => {
         if (filtroAtual === "pendentes") return !tarefa.concluida;
         if (filtroAtual === "concluidas") return tarefa.concluida;
-        return true; // 'todas'
+        return true;
     });
 
     tarefasFiltradas.forEach(function (tarefa) {
