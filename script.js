@@ -3,18 +3,28 @@ const campoAgendamento = document.getElementById("campo-agendamento");
 const botao = document.getElementById("botao-adicionar");
 const lista = document.getElementById("lista-tarefas");
 const contador = document.getElementById("contador-tarefas");
+const botaoTema = document.getElementById("botao-alternar-tema");
+const botoesFiltro = document.querySelectorAll(".botao-filtro");
 
-let tarefas = [];
+let tarefas = JSON.parse(localStorage.getItem("tarefas_app")) || [];
+let filtroAtual = "todas";
+
+if (localStorage.getItem("tema") === "escuro") {
+    document.body.classList.add("tema-escuro");
+    botaoTema.innerHTML = '<i class="fa-solid fa-sun"></i>';
+}
+
+function salvarNoStorage() {
+    localStorage.setItem("tarefas_app", JSON.stringify(tarefas));
+}
 
 botao.addEventListener("click", function () {
-
     if (campo.value.trim() === "") {
         alert("Digite uma tarefa!");
         return;
     }
 
     const agora = new Date();
-    
     const horas = String(agora.getHours()).padStart(2, '0');
     const minutos = String(agora.getMinutes()).padStart(2, '0');
     const horaCriacao = `${horas}:${minutos}`;
@@ -35,7 +45,7 @@ botao.addEventListener("click", function () {
     }
 
     const novaTarefa = {
-        texto: campo.value,
+        texto: campo.value.trim(),
         horaCriacao: horaCriacao,
         agendamentoTexto: agendamentoFormatado,
         dataAgendada: dataObjetoAgendada ? dataObjetoAgendada.getTime() : null,
@@ -44,6 +54,7 @@ botao.addEventListener("click", function () {
     };
 
     tarefas.push(novaTarefa);
+    salvarNoStorage();
 
     campo.value = "";
     campoAgendamento.value = "";
@@ -52,10 +63,16 @@ botao.addEventListener("click", function () {
 });
 
 function mostrarTarefas() {
-
     lista.innerHTML = "";
 
-    tarefas.forEach(function (tarefa, index) {
+    const tarefasFiltradas = tarefas.filter((tarefa) => {
+        if (filtroAtual === "pendentes") return !tarefa.concluida;
+        if (filtroAtual === "concluidas") return tarefa.concluida;
+        return true; // 'todas'
+    });
+
+    tarefasFiltradas.forEach(function (tarefa) {
+        const indexReal = tarefas.indexOf(tarefa);
 
         let item = document.createElement("li");
         if (tarefa.concluida) {
@@ -75,11 +92,15 @@ function mostrarTarefas() {
             <div class="acoes-tarefa">
                 <span class="hora-criacao">${tarefa.horaCriacao}</span>
 
-                <button onclick="concluir(${index})" title="Concluir">
-                    <i class="fa-solid fa-circle-check"></i>
+                <button onclick="concluir(${indexReal})" title="${tarefa.concluida ? 'Marcar como Pendente' : 'Concluir'}">
+                    <i class="fa-solid ${tarefa.concluida ? 'fa-rotate-left' : 'fa-circle-check'}"></i>
                 </button>
 
-                <button onclick="excluir(${index})" class="botao-acao excluir" title="Excluir">
+                <button onclick="editar(${indexReal})" class="botao-acao editar" title="Editar">
+                    <i class="fa-solid fa-pen"></i>
+                </button>
+
+                <button onclick="excluir(${indexReal})" class="botao-acao excluir" title="Excluir">
                     <i class="fa-solid fa-trash"></i>
                 </button>
             </div>
@@ -88,19 +109,45 @@ function mostrarTarefas() {
         lista.appendChild(item);
     });
 
-    contador.textContent = tarefas.length + 
-        (tarefas.length == 1 ? " tarefa na lista" : " tarefas na lista");
+    atualizarContador();
 }
 
 function concluir(index) {
     tarefas[index].concluida = !tarefas[index].concluida;
+    salvarNoStorage();
     mostrarTarefas();
+}
+
+function editar(index) {
+    const novoTexto = prompt("Edite o nome da tarefa:", tarefas[index].texto);
+    if (novoTexto !== null && novoTexto.trim() !== "") {
+        tarefas[index].texto = novoTexto.trim();
+        salvarNoStorage();
+        mostrarTarefas();
+    }
 }
 
 function excluir(index) {
     tarefas.splice(index, 1);
+    salvarNoStorage();
     mostrarTarefas();
 }
+
+function atualizarContador() {
+    const pendentes = tarefas.filter(t => !t.concluida).length;
+    const total = tarefas.length;
+
+    contador.textContent = `${pendentes} pendente(s) de ${total} tarefa(s)`;
+}
+
+botoesFiltro.forEach(botao => {
+    botao.addEventListener("click", () => {
+        botoesFiltro.forEach(b => b.classList.remove("ativo"));
+        botao.classList.add("ativo");
+        filtroAtual = botao.dataset.filtro;
+        mostrarTarefas();
+    });
+});
 
 setInterval(function() {
     const agoraTempo = new Date().getTime();
@@ -108,21 +155,22 @@ setInterval(function() {
     tarefas.forEach(function(tarefa) {
         if (tarefa.dataAgendada && !tarefa.notificada && agoraTempo >= tarefa.dataAgendada) {
             tarefa.notificada = true;
+            salvarNoStorage();
             alert(`⏰ Lembrete de Tarefa Programada: "${tarefa.texto}"`);
         }
     });
 }, 10000); 
 
-const botaoTema = document.getElementById("botao-alternar-tema");
-
 botaoTema.addEventListener("click", function() {
-
     document.body.classList.toggle("tema-escuro");
 
     if (document.body.classList.contains("tema-escuro")) {
         botaoTema.innerHTML = '<i class="fa-solid fa-sun"></i>';
+        localStorage.setItem("tema", "escuro");
     } else {
         botaoTema.innerHTML = '<i class="fa-solid fa-moon"></i>';
+        localStorage.setItem("tema", "claro");
     }
-
 });
+
+mostrarTarefas();
